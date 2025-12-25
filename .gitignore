@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local env files (보안 설정)
+.env
+db.sqlite3
+
+# 가상환경
+venv/
+.venv/
+env/
+
+# IDE 관련
+.vscode/
+.idea/
+
+# OS 관련
+.DS_Store
+Thumbs.db
