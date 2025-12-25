@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Excel Table with Handsontable</title>
+  {% load static %}
+  <link rel="icon" type="image/png" href="{% static 'favicon/favicon_sub.png' %}">
+  <link rel="stylesheet" href="{% static 'dist/handsontable.full.min.css' %}">
+  <link rel="stylesheet" href="{% static 'style_v2.css' %}">
+</head>
+<body>
+  <div id="wrapper">
+    <h1>Excel Table with Handsontable_Jenkins</h1>
+    <p class="subtitle" style="text-align: right; margin-right: 20px; color: #aaa; font-style: italic;">
+        Made by Shane
+    </p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div id="dropArea" class="drop-area">
+          <p id="dropText" style="font-weight: bolder;">Select one or more files (CLICK ME 🚹)</p>
+          <input type="file" name="excel_file" accept=".xlsx,.xls" multiple id="fileInput" style="display: none;">
+          <div id="fileNames" class="file-names"></div>
+        </div>
+        <button type="submit">Upload</button>
+    </form>
+  </div>
+
+  {% if files_data %}
+    <hr>
+  {% endif %}
+
+  <div id="tables-wrapper"></div>
+  
+	<script src="{% static 'dist/handsontable.full.min.js' %}"></script>
+  <script src="{% static 'dropbox.js' %}"></script>
+  <script>
+    const filesData = JSON.parse('{{ files_data|escapejs }}');
+    const wrapper = document.getElementById('tables-wrapper');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    filesData.forEach((file, fileIndex) => {
+      // 파일명 표시와 Excel 버튼을 같은 컨테이너 안에 배치
+      const headerContainer = document.createElement('div');
+      headerContainer.classList.add('file-header-container');
+
+      const title = document.createElement('h2');
+      title.textContent = file.name;
+
+      const downloadBtn = document.createElement('button');
+      downloadBtn.className = 'excel-download-btn';
+      downloadBtn.onclick = () => downloadSingleTable(hot, file.headers);
+
+      const icon = document.createElement('img');
+      icon.src = '{% static "img_v1/excel_icon_48.png" %}';
+      icon.alt = 'Excel Icon';
+      icon.className = 'excel-icon';
+
+      const text = document.createTextNode('Download');
+
+      downloadBtn.appendChild(icon);
+      downloadBtn.appendChild(text);
+
+      // 파일명과 버튼을 headerContainer에 추가
+      headerContainer.appendChild(title);
+      headerContainer.appendChild(downloadBtn);
+      wrapper.appendChild(headerContainer);
+
+      // Handsontable 컨테이너
+      const container = document.createElement('div');
+      container.id = `hot-${fileIndex}`;
+      container.style.marginBottom = '20px';
+      wrapper.appendChild(container);
+
+      // Handsontable 생성
+      const hot = new Handsontable(container, {
+        data: file.table_data,
+        colHeaders: file.headers,
+        rowHeaders: true,
+        filters: true,
+        dropdownMenu: true,
+        contextMenu: true,
+        manualColumnResize: true,
+        manualRowResize: true,
+        columnSorting: true,
+        hiddenColumns: {
+          columns: [],
+          indicators: true
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    });
+
+    function downloadSingleTable(hotInstance, headers) {
+      const data = hotInstance.getData();
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '';
+      form.style.display = 'none';
+
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrfmiddlewaretoken';
+      csrfInput.value = csrfToken;
+      form.appendChild(csrfInput);
+
+      const dataInput = document.createElement('input');
+      dataInput.type = 'hidden';
+      dataInput.name = 'data';
+      dataInput.value = JSON.stringify(data);
+      form.appendChild(dataInput);
+
+      const columnsInput = document.createElement('input');
+      columnsInput.type = 'hidden';
+      columnsInput.name = 'columns';
+      columnsInput.value = JSON.stringify(headers);
+      form.appendChild(columnsInput);
+
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+    }
+  </script>
+</body>
+</html>

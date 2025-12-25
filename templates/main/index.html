@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>Kakao IDC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="{% static 'img_v2/Link_96.png' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'style_v3.css' %}">
+</head>
+<body>
+    <h1>Kakao IDC Link Page</h1>
+
+    <div class="toggle-container">
+        <label class="switch">
+            <input type="checkbox" id="dm">
+            <span class="slider round"></span>
+        </label>
+        <span class="toggle-label"></span>
+    </div>
+
+    <div class="outer-container">
+        <div class="grid-container">
+
+            <div class="card">
+                <div class="card-title">Asset Management</div>
+                <div class="link-list">
+                    <a href="https://imsv2.onkakao.net/auth/jwt/login" target="_blank" class="link-item">
+                        <img src="/static/img_v2/IMS_V2.png" class="link-icon" style="width:40px; height:40px;"> IMSv2
+                    </a>
+                    <a href="https://ims.daumkakao.io/stock/part/view" target="_blank" class="link-item">
+                        <img src="/static/img_v2/IMS.ico" class="link-icon" style="width:40px; height:40px;"> IMSv1-파트 관리
+                    </a>
+                    <a href="http://dceservice.ay1.krane.9rum.cc/DAC/dashboard.html" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Asset01.png" class="link-icon" style="width:40px; height:40px;"> WEB-파트 관리
+                    </a>
+                    <a href="https://ims.daumkakao.io/asset/assetListForm" target="_blank" class="link-item">
+                        <img src="/static/img_v2/IMS.ico" class="link-icon" style="width:40px; height:40px;"> IMSv1-바코드 출력
+                    </a>
+                    <a href="https://ims.daumkakao.io/stock/check/view" target="_blank" class="link-item">
+                        <img src="/static/img_v2/IMS.ico" class="link-icon" style="width:40px; height:40px;"> IMSv1-재고 실사
+                    </a>
+                    <a href="https://ims.daumkakao.io/system/rack/layout/main#" target="_blank" class="link-item">
+                        <img src="/static/img_v2/IMS.ico" class="link-icon" style="width:40px; height:40px;"> IMSv1-Rack View
+                    </a>
+                    <a href="http://idc-asset.ay1.krane.9rum.cc:5050" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Asset02.png" class="link-icon" style="width:40px; height:40px;"> 대여 자산관리
+                    </a>
+                    <a href="https://docs.google.com/spreadsheets/d/1YafoGYdzAJxk4J7lewWkp1QExtjJFc5EVWDQxXkFTZQ/edit?gid=941992273#gid=941992273" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Cable.png" class="link-icon" style="width:40px; height:40px;"> 네트워크 자산관리
+                    </a>
+                    <a href="https://docs.google.com/spreadsheets/d/1hsv3yXx5tUbhJLsOyhu_Y4pYsFLv-_tfbFSc34NNki4/edit?gid=708510480#gid=708510480" target="_blank" class="link-item">
+                        <img src="/static/img_v2/GPU.png" class="link-icon" style="width:40px; height:40px;"> GPU 장애처리 파트관리
+                    </a>
+                    <a href="https://docs.google.com/spreadsheets/d/1cRlqD9DMiqGt38-QLZULx2Wi2V461iTs4nVBeJ8RO6E/edit?gid=0#gid=0" target="_blank" class="link-item">
+                        <img src="/static/img_v2/NIC.png" class="link-icon" style="width:40px; height:40px;"> NIC 파트 관리
+                    </a>
+                    <a href="https://docs.google.com/spreadsheets/d/18UgvHnZkRmCp0LD8dZHVpzqK_dSUTbVHgdQ6lBEwuxg/edit?gid=564355290#gid=564355290" target="_blank" class="link-item">
+                        <img src="/static/img_v2/GBIC.png" class="link-icon" style="width:40px; height:40px;"> Citrix GBIC 파트 관리
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Error Management</div>
+                <div class="link-list">
+                    <a href="https://tms.daumkakao.io/faulthandle/faultHandling.do" target="_blank" class="link-item">
+                        <img src="/static/img_v2/TMS.ico" class="link-icon" style="width:45px; height:45px;"> TMS - 메인
+                    </a>
+                    <a href="https://tms.daumkakao.io/dws/dwsList.do" target="_blank" class="link-item">
+                        <img src="/static/img_v2/TMS.ico" class="link-icon" style="width:45px; height:45px;"> TMS - 작업 리스트 등록
+                    </a>
+                    <a href="https://tms.daumkakao.io/hwproc/hwprocInputList.do" target="_blank" class="link-item">
+                        <img src="/static/img_v2/TMS.ico" class="link-icon" style="width:45px; height:45px;"> TMS - 장애처리 상세 등록
+                    </a>
+                    <a href="http://dceng-dcnegweb.ay1.krane.9rum.cc/IDC/disk" target="_blank" class="link-item">
+                        <img src="/static/img_v2/disk1.ico" class="link-icon" style="width:45px; height:45px;"> DISK - 삭제 정보 등록
+                    </a>
+                    <a href="http://10.91.9.137:4001" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Hadoop.png" class="link-icon" style="width:45px; height:45px;"> DISK - 하둡 장애 이력 등록
+                    </a>
+                    <a href="http://dktechin-ay-test2.dakao.io/rma/" target="_blank" class="link-item">
+                        <img src="/static/img_v2/RMA.png" class="link-icon" style="width:45px; height:45px;"> RMA
+                    </a>
+                    <a href="https://partners.agit.io/home" target="_blank" class="link-item">
+                        <img src="/static/img_v2/RMA.png" class="link-icon" style="width:45px; height:45px;"> RMA-Partners Agit
+                    </a>
+                    <a href="https://docs.google.com/spreadsheets/d/1YfYooWJutQLFl2xmTaFfE5zXzuwSzVXCSCiOab9HD38/edit?gid=295829977#gid=295829977" target="_blank" class="link-item">
+                        <img src="/static/img_v2/GBIC.png" class="link-icon" style="width:45px; height:45px;"> RMA-GBIC
+                    </a>
+                    <a href="https://docs.google.com/spreadsheets/d/1jX6NDZSC2ypctELxeMyT9n9nmGMvLZv3wFEqLvISnYc/edit?gid=0#gid=0" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Network_Cable.png" class="link-icon" style="width:45px; height:45px;"> ErrorBoard-DAC
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">IDC Management</div>
+                <div class="link-list">
+                    <a href="https://dkt.agit.in/g/274966/wall" target="_blank" class="link-item">
+                        <img src="/static/img_v2/agit.png" class="link-icon" style="width:45px; height:45px;"> Agit
+                    </a>
+                    <a href="https://knock.kakaosecure.net/" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Knock.png" class="link-icon" style="width:45px; height:45px;"> 똑똑 - 출입 신청 시스템
+                    </a>
+                    <a href="https://op-idccal.daumtools.com/" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Schedule.png" class="link-icon" style="width:45px; height:45px;"> 스케줄
+                    </a>
+                    <a href="http://dceng-dcnegweb.ay1.krane.9rum.cc/IDC/report/" target="_blank" class="link-item">
+                        <img src="/static/img_v2/workbook.png" class="link-icon" style="width:45px; height:45px;"> 업무 일지
+                    </a>
+                    <a href="http://dceng-app.ay1.krane.9rum.cc:2020/" target="_blank" class="link-item">
+                        <img src="/static/img_v2/check.png" class="link-icon" style="width:45px; height:45px;"> 육안점검
+                    </a>
+                    <a href="http://excelruss.ay2dev.krane.9rum.cc/" target="_blank" class="link-item">
+                        <img src="/static/img_v1/excel_icon_96.png" class="link-icon" style="width:45px; height:45px;"> 엑셀 변환기
+                    </a>
+                    <a href="http://kkoidc-web-v1.ay1.krane.9rum.cc:8262" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Quick.png" class="link-icon" style="width:45px; height:45px;"> 퀵 사용대장
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Server Management</div>
+                <div class="link-list">
+                    <a href="https://dc-cpuinfo.ay1.krane.9rum.cc:15020/explorer/search" target="_blank" class="link-item">
+                        <img src="/static/img_v2/tiki_page.png" class="link-icon" style="width:50px; height:50px;"> DC Exploer
+                    </a>
+                    <a href="https://karas.daumkakao.io/login?redirect=http://karas.daumkakao.io/" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Karas.png" class="link-icon" style="width:50px; height:50px;"> Karas
+                    </a>
+                    <a href="http://krane-fault.at.kakaocorp.com/forfault" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Krane.png" class="link-icon" style="width:50px; height:50px;"> Krane - Forfault
+                    </a>
+                    <a href="http://tony-test1.ay1.krane.9rum.cc:8000/kafka-dashboard.html" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Kafka.png" class="link-icon" style="width:50px; height:50px;"> Kfaka - Forfault
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Service issue</div>
+                <div class="link-list">
+                    <a href="https://dkt.agit.in/g/300004802/wall/375105522#comment_panel_428427200" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Kage.png" class="link-icon" style="width:50px; height:50px;"> Kage
+                    </a>
+                    <a href="https://dkt.agit.in/g/300015037/wall/427347275#comment_panel_427373875" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Tset.png" class="link-icon" style="width:50px; height:50px;"> Tenth
+                    </a>
+                    <a href="https://dkt.agit.in/g/300002967/wall/320850203#comment_panel_403989670" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Krane.png" class="link-icon" style="width:50px; height:50px;"> Krane
+                    </a>
+                    <a href="https://wiki.daumkakao.com/spaces/kakaoidc/pages/906530031/2-6.+Kafka" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Kafka.png" class="link-icon" style="width:50px; height:50px;"> Kfaka
+                    </a>
+                    <a href="https://dkt.agit.in/g/300004802/wall/429662243" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Elasticsearch.png" class="link-icon" style="width:50px; height:50px;"> ElasticSearch
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Intranet & Wiki</div>
+                <div class="link-list">
+                    <a href="https://mail.kakaowork.com/mail/list.do" target="_blank" class="link-item">
+                        <img src="/static/img_v2/Mail.png" class="link-icon" style="width:50px; height:50px;"> 메일
+                    </a>
+                    <a href="https://start.dktechin.io/?kw-auth-handover=21d562075813134b9c18d65b0a3fc5efd958035b6e667791b7e5c6babac80434" target="_blank" class="link-item">
+                        <img src="/static/img_v2/kakao.png" class="link-icon" style="width:50px; height:50px;"> 인트라넷
+                    </a>
+                    <a href="https://wlb.dktechin.io/login" target="_blank" class="link-item">
+                        <img src="/static/img_v2/kakao.png" class="link-icon" style="width:50px; height:50px;"> 휴가 시스템
+                    </a>
+                    <a href="https://eva-beta.dktechin.io/" target="_blank" class="link-item">
+                        <img src="/static/img_v2/kakao.png" class="link-icon" style="width:50px; height:50px;"> 평가 시스템
+                    </a>
+                    <a href="https://eaccount.dktechin.io/" target="_blank" class="link-item">
+                        <img src="/static/img_v2/kakao.png" class="link-icon" style="width:50px; height:50px;"> 경비 지출 관리-회계마감
+                    </a>
+                    <a href="https://wiki.daumkakao.com/spaces/viewspace.action?key=techin" target="_blank" class="link-item">
+                        <img src="/static/img_v2/wiki.png" class="link-icon" style="width:50px; height:50px;"> DKT Wiki
+                    </a>
+                    <a href="https://wiki.daumkakao.com/spaces/kakaoidc/pages/899572727/Kakao+IDC+Team+WiKi" target="_blank" class="link-item">
+                        <img src="/static/img_v2/wiki.png" class="link-icon" style="width:50px; height:50px;"> KAKAO IDC Wiki
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Security & Monitoring</div>
+                <div class="link-list">
+                    <a href="https://safe.menlosecurity.com/" target="_blank" class="link-item">
+                        <img src="/static/img_v2/menlo.png" class="link-icon" style="width:50px; height:50px;"> Menlosecurity - 외부망
+                    </a>
+                    <a href="https://noti.daumkakao.io/dashboard/main" target="_blank" class="link-item">
+                        <img src="/static/img_v2/WatchCenter.png" class="link-icon" style="width:50px; height:50px;"> Watch Center
+                    </a>
+                    <a href=" https://odin.onkakao.net/" target="_blank" class="link-item">
+                        <img src="/static/img_v2/odin.png" class="link-icon" style="width:50px; height:50px;"> Odin
+                    </a>
+                    <a href="https://kaya.onkakao.net/login?returnUrl=%2Fhome" target="_blank" class="link-item">
+                        <img src="/static/img_v2/kaya.png" class="link-icon" style="width:50px; height:50px;"> Kaya
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">ETC</div>
+                <div class="link-list">
+                    <a href="https://kcp-console.9rum.cc/dashboard" target="_blank" class="link-item">
+                        <img src="/static/img_v2/cloud.png" class="link-icon" style="width:50px; height:50px;"> Kakao Cloud
+                    </a>
+                    <a href=" https://github.kakaocorp.com/" target="_blank" class="link-item">
+                        <img src="/static/img_v2/git.png" class="link-icon" style="width:50px; height:50px;"> Kakao Git
+                    </a>
+                    <a href="https://www.snack24h.com/admin/auth/login" target="_blank" class="link-item">
+                        <img src="/static/img_v2/toss.png" class="link-icon" style="width:50px; height:50px;"> Snack24-부식 구매
+                    </a>
+                    <a href="https://tos.officeplus.com/loginForm.do" target="_blank" class="link-item">
+                        <img src="/static/img_v2/toss.png" class="link-icon" style="width:50px; height:50px;"> TOSSmall-소모품 구매
+                    </a>
+                </div>
+            </div>
+
+            <!-- <div class="card">
+                <div class="card-title">Card</div>
+                <div class="link-list">
+                    <a href="" target="_blank" class="link-item">
+                        <img src="" class="link-icon" style="width:50px; height:50px;"> ex01
+                    </a>
+                    <a href="" target="_blank" class="link-item">
+                        <img src="" class="link-icon" style="width:50px; height:50px;"> ex02
+                    </a>
+                </div>
+            </div> -->
+
+            <!-- <div class="card">
+                <div class="card-title">기타 자산 관리</div>
+                <div class="link-list">
+
+                </div>
+            </div> -->
+            
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("dm").addEventListener("change", () => {
+            document.body.classList.toggle("dark");
+        });
+    </script> 
+
+    <!-- 
+    블랙 Only 
+    <script>
+        window.addEventListener("DOMContentLoaded", () => {
+          const toggle = document.getElementById("darkModeToggle");
+      
+
+          document.body.classList.add("dark");
+          toggle.checked = true;
+      
+
+          toggle.addEventListener("change", function () {
+            if (toggle.checked) {
+              document.body.classList.add("dark");   // 다크모드
+            } else {
+              document.body.classList.remove("dark"); // 라이트모드
+            }
+          });
+        });
+    </script> 
+    -->
+
+    <!-- 
+    전에 사용했던 버전
+    <script>
+        const toggle = document.getElementById("darkModeToggle");
+
+        toggle.addEventListener("change", function () {
+            document.body.classList.toggle("dark");
+        });
+    </script> 
+    -->
+
+    </body>
+</html>
+

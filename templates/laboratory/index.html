@@ -1,0 +1,301 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>메모장</title>
+
+    <link rel="stylesheet" href="{% static 'flatpickr/flatpickr.min.css' %}">
+    <script src="{% static 'flatpickr/flatpickr.min.js' %}"></script>
+    <script src="{% static 'flatpickr/ko.js' %}"></script>
+
+    <link rel="stylesheet" href="{% static 'django_ckeditor_5/dist/styles.css' %}">
+    <script src="{% static 'django_ckeditor_5/dist/bundle.js' %}"></script>
+    
+    <!-- Static 경로-->
+    <!-- <script src="{% static 'ckeditor/ckeditor.js' %}"></script> -->
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 40px;
+            background: #f7f7f7;
+        }
+
+        .container {
+            display: flex;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+
+        .calendar-container {
+            flex: 0 0 350px;
+            position: sticky;
+            top: 40px;
+        }
+        
+        /* ✅ 에디터 컨테이너를 플로팅 윈도우 스타일로 변경 */
+        .editor-container {
+            display: none; 
+            opacity: 0;
+            position: fixed; 
+            top: 100px;
+            left: 450px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            width: 700px;   /* 초기 너비 */
+            min-width: 450px;
+            min-height: 300px;
+            
+            /* ✅ 확대/축소 기능 활성화 */
+            resize: both; 
+            overflow: hidden; 
+            transition: opacity 0.3s ease;
+        }
+
+        .editor-container.show {
+            display: block;
+            opacity: 1;
+        }
+        
+        /* ✅ 드래그 핸들 (제목 표시줄) */
+        .date-title {
+            font-size: 1.1rem;
+            padding: 15px 20px;
+            margin: 0;
+            color: white;
+            background: #2a72de; 
+            border-radius: 12px 12px 0 0;
+            cursor: move; /* 이동 커서 */
+            user-select: none; /* 텍스트 선택 방지 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #noteForm {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            /* 창 크기에 맞춰 폼 높이 조절 */
+            height: calc(100% - 60px); 
+        }
+        
+        /* 에디터 내부 높이 자동 조절 */
+        .ck-editor__editable_inline {
+            flex-grow: 1;
+            min-height: 350px !important;
+            background-color: white !important;
+        }
+
+        /* 코드 블록 및 형광펜 스타일 (기존 유지) */
+        .ck-content pre { background-color: #2b2b2b !important; color: #f8f8f2 !important; padding: 1em !important; border-radius: 5px !important; }
+        .pen-yellow { background-color: #fff34d !important; }
+        .pen-green { background-color: #7ef9ff !important; }
+        .pen-pink { background-color: #ff7eb9 !important; }
+
+        button#saveBtn {
+            margin-top: 15px;
+            background: #2a72de;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        button#saveBtn:hover { background: #1e56a0; }
+
+        .flatpickr-calendar { width: 350px !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calendar-container">
+            <h3>Calender</h3>
+            <div id="inlineCalendar"></div>
+        </div>
+
+        <div class="editor-container" id="editorWrapper">
+            <div class="date-title" id="dragHandle">
+                <span id="selectedDateText">날짜를 선택하세요</span>
+                <span style="font-size: 0.7rem; opacity: 0.8;">[여기를 잡아 이동 / 모서리 드래그로 크기조절]</span>
+            </div>
+            <form id="noteForm">
+                <textarea id="editor" name="content"></textarea>
+                <button type="submit" id="saveBtn">save</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let selectedDate = null;
+        let editorInstance;
+        let calendar;
+
+        // ✅ 1. 드래그 이동 기능 로직
+        function initDraggable(el) {
+            const handle = document.getElementById("dragHandle");
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+            handle.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                // 제목 표시줄 영역만 드래그 가능하게 설정
+                if (e.target !== handle && e.target.parentNode !== handle) return;
+                
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                el.style.top = (el.offsetTop - pos2) + "px";
+                el.style.left = (el.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        // ✅ 에디터 컨테이너 토글 함수 (기존 로직 유지)
+        function toggleEditorUI(show, dateStr = "") {
+            const wrapper = document.getElementById('editorWrapper');
+            const dateText = document.getElementById('selectedDateText');
+            
+            if (show) {
+                dateText.innerText = `${dateStr} 운영 업무`;
+                wrapper.classList.add('show');
+            } else {
+                wrapper.classList.remove('show');
+            }
+        }
+
+        // ✅ CKEditor 5 초기화 (부가 기능 포함)
+        function initEditor() {
+            const editorElement = document.querySelector('#editor');
+            
+            ClassicEditor.create(editorElement, {
+                licenseKey: 'GPL', 
+                toolbar: [
+                    'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', 'highlight', '|',
+                    'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                    'bulletedList', 'numberedList', 'todoList', '|',
+                    'code', 'codeBlock', 'blockQuote', 'insertTable', '|',
+                    'link', 'undo', 'redo'
+                ],
+                balloonToolbar: ['bold', 'italic', 'underline', 'highlight', 'link'],
+                highlight: {
+                    options: [
+                        { model: 'yellowMarker', class: 'pen-yellow', label: 'Yellow marker', type: 'marker' },
+                        { model: 'greenMarker', class: 'pen-green', label: 'Green marker', type: 'marker' },
+                        { model: 'pinkMarker', class: 'pen-pink', label: 'Pink marker', type: 'marker' },
+                        { model: 'blueMarker', class: 'pen-blue', label: 'Blue marker', type: 'marker' },
+                    ]
+                }
+            })
+            .then(editor => {
+                editorInstance = editor;
+                
+                // 초기 로드 시 마지막 날짜 복원
+                const lastDate = localStorage.getItem('last_selected_date');
+                if (lastDate) {
+                    selectedDate = lastDate;
+                    calendar.setDate(lastDate, true);
+                    toggleEditorUI(true, lastDate);
+                    loadNoteForDate(lastDate);
+                }
+            });
+        }
+
+        // ✅ 메모 로드 함수 (상속 로직 지원)
+        function loadNoteForDate(dateStr) {
+            if (!editorInstance) return;
+            editorInstance.setData(''); 
+
+            fetch(`get_note/?date=${dateStr}`)
+                .then(res => res.json())
+                .then(data => {
+                    editorInstance.setData(data.content || '');
+                })
+                .catch(() => {
+                    editorInstance.setData('');
+                });
+        }
+
+        // ✅ Flatpickr 초기화
+        calendar = flatpickr("#inlineCalendar", {
+            inline: true,
+            locale: "ko",
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr) {
+                if (selectedDate === dateStr) {
+                    selectedDate = null;
+                    toggleEditorUI(false);
+                } else {
+                    selectedDate = dateStr;
+                    localStorage.setItem('last_selected_date', dateStr);
+                    toggleEditorUI(true, dateStr);
+                    loadNoteForDate(dateStr);
+                }
+            }
+        });
+
+        // ✅ 저장 로직 (빈 값 체크 및 링크 보존)
+        document.getElementById("noteForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            if (!selectedDate) return alert("날짜를 선택하세요!");
+
+            const content = editorInstance.getData();
+            const plainText = content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim();
+
+            if (!plainText) {
+                alert("내용을 입력해주세요. 빈 메모는 저장 시 상속 로직이 끊길 수 있습니다.");
+                return;
+            }
+
+            fetch('save_note/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({
+                    date: selectedDate,
+                    content: content
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(selectedDate + " 메모가 저장되었습니다.");
+                }
+            });
+        });
+
+        // 초기화 실행
+        initEditor();
+        // 드래그 기능 연결
+        initDraggable(document.getElementById('editorWrapper'));
+    </script>
+</body>
+</html>

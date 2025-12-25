@@ -1,0 +1,580 @@
+<!-- 초기 버전 레이아웃 설정O, 링크 기능 안되는 부분 원인 css로 발견되었음 -->
+<!DOCTYPE html>
+<html lang="ko">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>HN IDC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link rel="icon" type="image/png" href="{% static 'img_v2/Link_96.png' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'style_v3.css' %}">
+    <link rel="stylesheet" href="{% static 'flatpickr/flatpickr.min.css' %}">
+    <link rel="stylesheet" href="{% static 'django_ckeditor_5/dist/styles.css' %}">
+
+    <style>
+        /* 1. 기본 베이스 */
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 40px; /* 외부 여백 확장 */
+            transition: background 0.3s;
+            overflow-x: hidden;
+        }
+    
+        header { text-align: center; margin-bottom: 40px; } /* 헤더와 본문 사이 간격 확대 */
+        .subtitle { color: #aaa; font-style: italic; font-size: 0.9rem; }
+    
+        /* 2. ✅ 메인 레이아웃 */
+        .main-container {
+            display: flex;
+            gap: 50px; 
+            max-width: 100%;
+            margin: 0 auto;
+            align-items: flex-start;
+            flex-wrap: nowrap;
+        }
+    
+        /* ⬅️ 좌측 사이드바 (달력) */
+        .side-panel {
+            flex: 0 0 350px;
+            position: sticky;
+            top: 40px; /* 상단 고정 위치 여백 확대 */
+            z-index: 10;
+        }
+    
+        .calendar-box {
+            background: white;
+            padding: 30px; /* 달력 내부 여백 확대 */
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+    
+        /* ➡️ 우측 메인 패널 (공지 + 카드) */
+        .content-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 40px; /* 👈 공지사항 박스와 하단 카드 그리드 사이의 세로 간격 확대 */
+            min-width: 0;
+        }
+    
+        /* 3. 공지사항 섹션 */
+        .notice-box {
+            background: white;
+            padding: 30px; /* 내부 여백 확대 */
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e0e0e0;
+            min-height: 120px;
+        }
+        .notice-header { 
+            font-weight: bold; 
+            color: #2a72de; 
+            margin-bottom: 20px; 
+            font-size: 1.2rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+        }
+    
+        /* 4. ✅ 동적 카드 그리드 (카드 간 간격 조정) */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px; /* 👈 카드와 카드 사이의 상하좌우 간격 확대 (기존 15px) */
+        }
+    
+        @media (min-width: 1600px) {
+            .cards-grid { grid-template-columns: repeat(5, 1fr); }
+        }
+    
+        .card {
+            margin-bottom: 0 !important;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #eef2f7;
+            height: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .card-title { font-size: 1.1rem !important; font-weight: bold; padding: 15px !important; border-bottom: 1px solid #f0f0f0; }
+    
+        /* 5. 플로팅 메모장 (동일 유지) */
+        .editor-container {
+            display: none; opacity: 0; position: fixed; 
+            top: 150px; left: 450px; z-index: 2000;
+            background: white; border: 1px solid #ddd; border-radius: 15px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            width: 800px; min-width: 450px; min-height: 400px;
+            resize: both; overflow: hidden; transition: opacity 0.3s ease;
+        }
+        .editor-container.show { display: block; opacity: 1; }
+
+        /* ✅ 드래그 핸들 (제목 표시줄) */
+        .date-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding: 15px 20px;
+            margin: 0;
+            color: white;
+            background: #2a72de; 
+            border-radius: 12px 12px 0 0;
+            cursor: move; /* 이동 커서 */
+            user-select: none; /* 텍스트 선택 방지 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    
+        #noteForm {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            /* 창 크기에 맞춰 폼 높이 조절 */
+            height: calc(100% - 60px); 
+        }
+        
+        /* 에디터 내부 높이 자동 조절 */
+        .ck-editor__editable_inline {
+            flex-grow: 1;
+            min-height: 350px !important;
+            background-color: white !important;
+        }
+
+        /* 코드 블록 및 형광펜 스타일 (기존 유지) */
+        .ck-content pre { background-color: #2b2b2b !important; color: #f8f8f2 !important; padding: 1em !important; border-radius: 5px !important; }
+        .pen-yellow { background-color: #fff34d !important; }
+        .pen-green { background-color: #7ef9ff !important; }
+        .pen-pink { background-color: #ff7eb9 !important; }
+
+        button#saveBtn {
+            margin-top: 15px;
+            background: #2a72de;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        button#saveBtn:hover { background: #1e56a0; }
+
+        .flatpickr-calendar { width: 350px !important; }
+    
+        /* 6. 다크모드 (동일 유지) */
+        .dark { background: #1a1a1a !important; color: #eee; }
+        .dark .calendar-box, .dark .notice-box, .dark .card, .dark .editor-container { 
+            background: #2d2d2d; border-color: #444; color: #eee; 
+        }
+        .dark .ck-editor__editable_inline { background: #333 !important; color: white !important; }
+    
+        /* 7. 모바일 대응 시 간격 재조정 */
+        @media (max-width: 1100px) {
+            .main-container { flex-direction: column; align-items: center; gap: 30px; }
+            .side-panel { flex: 0 0 auto; width: 100%; max-width: 350px; position: relative; top: 0; }
+            .content-panel { width: 100%; gap: 30px; }
+        }
+    
+        button#saveBtn {
+            margin-top: 20px; background: #2a72de; color: white; border: none;
+            border-radius: 8px; padding: 15px; font-weight: bold; width: 100%; cursor: pointer;
+        }
+    </style>
+</head>
+<body class="">
+
+    <header>
+        <h1>HN IDC</h1>
+        <p class="subtitle">
+            <a href="https://wiki.daumkakao.com/pages/viewpage.action?pageId=389453783" target="_blank" style="color:inherit; text-decoration:none;">Made by Shane</a>
+        </p> 
+        <div class="toggle-container">
+            <label class="switch"><input type="checkbox" id="dm"><span class="slider round"></span></label>
+        </div>
+    </header>
+
+    <div class="main-container">
+        
+        <div class="side-panel">
+            <div class="calendar-box">
+                <h5 style="font-weight: bold; margin-bottom: 20px;">Work Calendar</h5>
+                <div id="inlineCalendar"></div>
+                <p style="margin-top: 15px; font-size: 0.8rem; color: #aaa;">날짜를 클릭하여 업무 기록</p>
+            </div>
+        </div>
+
+        <div class="content-panel">
+            
+            <div class="notice-box">
+                <div class="notice-header">Notice</div>
+                <div id="notice-content">
+                    <p style="color: #888;">Develop.</p>
+                </div>
+            </div>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-title">Asset Management</div>
+                    <div class="link-list">
+                        <a href="https://imsv2.onkakao.net/auth/jwt/login" target="_blank" class="link-item">
+                            <img src="/static/img_v2/IMS_V2.png" class="link-icon" style="width:40px; height:40px;"> IMSv2
+                        </a>
+                        <a href="https://ims.daumkakao.io/stock/part/view" target="_blank" class="link-item">
+                            <img src="/static/img_v2/IMS.ico" class="link-icon" style="width:40px; height:40px;"> IMSv1-파트 관리
+                        </a>
+                        <a href="http://dceservice.ay1.krane.9rum.cc/DAC/dashboard.html" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Asset01.png" class="link-icon" style="width:40px; height:40px;"> WEB-파트 관리
+                        </a>
+                        <a href="https://ims.daumkakao.io/asset/assetListForm" target="_blank" class="link-item">
+                            <img src="/static/img_v2/IMS.ico" class="link-icon" style="width:40px; height:40px;"> IMSv1-바코드 출력
+                        </a>
+                        <a href="https://ims.daumkakao.io/stock/check/view" target="_blank" class="link-item">
+                            <img src="/static/img_v2/IMS.ico" class="link-icon" style="width:40px; height:40px;"> IMSv1-재고 실사
+                        </a>
+                        <a href="https://ims.daumkakao.io/system/rack/layout/main#" target="_blank" class="link-item">
+                            <img src="/static/img_v2/IMS.ico" class="link-icon" style="width:40px; height:40px;"> IMSv1-Rack View
+                        </a>
+                        <a href="http://hn-uber.ay1.krane.9rum.cc:3000/warehouse" target="_blank" class="link-item">
+                            <img src="/static/img_v2/ware.ico" class="link-icon" style="width:40px; height:40px;"> 하남 창고관리
+                        </a>
+                        <a href="http://idc-asset.ay1.krane.9rum.cc:5050/hndc" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Asset02.png" class="link-icon" style="width:40px; height:40px;"> 대여 자산관리
+                        </a>
+                        <a href="https://docs.google.com/spreadsheets/d/1YafoGYdzAJxk4J7lewWkp1QExtjJFc5EVWDQxXkFTZQ/edit?gid=941992273#gid=941992273" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Cable.png" class="link-icon" style="width:40px; height:40px;"> 네트워크 자산관리
+                        </a>
+                        <a href="https://docs.google.com/spreadsheets/d/1hsv3yXx5tUbhJLsOyhu_Y4pYsFLv-_tfbFSc34NNki4/edit?gid=708510480#gid=708510480" target="_blank" class="link-item">
+                            <img src="/static/img_v2/GPU.png" class="link-icon" style="width:40px; height:40px;"> GPU 장애처리 파트관리
+                        </a>
+                        <a href="https://docs.google.com/spreadsheets/d/1cRlqD9DMiqGt38-QLZULx2Wi2V461iTs4nVBeJ8RO6E/edit?gid=0#gid=0" target="_blank" class="link-item">
+                            <img src="/static/img_v2/NIC.png" class="link-icon" style="width:40px; height:40px;"> NIC 파트 관리
+                        </a>
+                        <a href="https://docs.google.com/spreadsheets/d/18UgvHnZkRmCp0LD8dZHVpzqK_dSUTbVHgdQ6lBEwuxg/edit?gid=564355290#gid=564355290" target="_blank" class="link-item">
+                            <img src="/static/img_v2/GBIC.png" class="link-icon" style="width:40px; height:40px;"> Citrix GBIC 파트 관리
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Error Management</div>
+                    <div class="link-list">
+                        <a href="https://tms.daumkakao.io/faulthandle/faultHandling.do" target="_blank" class="link-item">
+                            <img src="/static/img_v2/TMS.ico" class="link-icon" style="width:45px; height:45px;"> TMS - 메인
+                        </a>
+                        <a href="https://tms.daumkakao.io/dws/dwsList.do" target="_blank" class="link-item">
+                            <img src="/static/img_v2/TMS.ico" class="link-icon" style="width:45px; height:45px;"> TMS - 작업 리스트 등록
+                        </a>
+                        <a href="https://tms.daumkakao.io/hwproc/hwprocInputList.do" target="_blank" class="link-item">
+                            <img src="/static/img_v2/TMS.ico" class="link-icon" style="width:45px; height:45px;"> TMS - 장애처리 상세 등록
+                        </a>
+                        <a href="http://dceng-dcnegweb.ay1.krane.9rum.cc/IDC/disk" target="_blank" class="link-item">
+                            <img src="/static/img_v2/disk1.ico" class="link-icon" style="width:45px; height:45px;"> DISK - 삭제 정보 등록
+                        </a>
+                        <a href="http://10.91.9.137:4001/hn/all" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Hadoop.png" class="link-icon" style="width:45px; height:45px;"> DISK - 하둡 장애 이력 등록
+                        </a>
+                        <a href="http://dktechin-ay-test2.dakao.io/rma/hndc" target="_blank" class="link-item">
+                            <img src="/static/img_v2/RMA.png" class="link-icon" style="width:45px; height:45px;"> RMA
+                        </a>
+                        <a href="https://docs.google.com/spreadsheets/d/1YfYooWJutQLFl2xmTaFfE5zXzuwSzVXCSCiOab9HD38/edit?gid=295829977#gid=295829977" target="_blank" class="link-item">
+                            <img src="/static/img_v2/GBIC.png" class="link-icon" style="width:45px; height:45px;"> RMA-GBIC
+                        </a>
+                        <a href="https://docs.google.com/spreadsheets/d/1jX6NDZSC2ypctELxeMyT9n9nmGMvLZv3wFEqLvISnYc/edit?gid=0#gid=0" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Network_Cable.png" class="link-icon" style="width:45px; height:45px;"> DAC-ErrorBoard
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Working</div>
+                    <div class="link-list">
+                        <a href="https://dkt.agit.in/g/274966/wall" target="_blank" class="link-item">
+                            <img src="/static/img_v2/agit.png" class="link-icon" style="width:45px; height:45px;"> Agit
+                        </a>
+                        <a href="https://knock.kakaosecure.net/" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Knock.png" class="link-icon" style="width:45px; height:45px;"> 똑똑 - 출입 신청 시스템
+                        </a>
+                        <a href="https://mail.kakaowork.com/mail/list.do" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Mail.png" class="link-icon" style="width:45px; height:45px;"> 메일
+                        </a>
+                        <a href="https://op-idccal.daumtools.com/" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Schedule.png" class="link-icon" style="width:45px; height:45px;"> 스케줄
+                        </a>
+                        <a href="http://dceng-dcnegweb.ay1.krane.9rum.cc/IDC/report/hndc" target="_blank" class="link-item">
+                            <img src="/static/img_v2/workbook.png" class="link-icon" style="width:45px; height:45px;"> 업무 일지
+                        </a>
+                        <a href="http://dceng-app.ay1.krane.9rum.cc:2020/hndc" target="_blank" class="link-item">
+                            <img src="/static/img_v2/check.png" class="link-icon" style="width:45px; height:45px;"> 육안점검
+                        </a>
+                        <a href="https://docs.google.com/spreadsheets/d/1sl-MfGJnL3U5uafHhiux3gQ5N-HkHrXNn_x_Yo_GmZY/edit?gid=1761427498#gid=1761427498" target="_blank" class="link-item">
+                            <img src="/static/img_v1/google_sheet_48.png" class="link-icon" style="width:45px; height:45px;">HN Work List
+                        </a>
+                        <a href="https://docs.google.com/spreadsheets/d/1DQbUzjAjEGw_Ix5zczFmY21v4Xhxk-ch1hmfeNYMDTs/edit?gid=996840399#gid=996840399" target="_blank" class="link-item">
+                            <img src="/static/img_v1/google_sheet_48.png" class="link-icon" style="width:45px; height:45px;">HN CPLD List
+                        </a>
+                        <a href="https://docs.google.com/spreadsheets/d/1sl-MfGJnL3U5uafHhiux3gQ5N-HkHrXNn_x_Yo_GmZY/edit?gid=1669881149#gid=1669881149" target="_blank" class="link-item">
+                            <img src="/static/img_v1/google_sheet_48.png" class="link-icon" style="width:45px; height:45px;">HN IPMI 대역
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Service & Forfault</div>
+                    <div class="link-list">
+                        <a href="https://karas.daumkakao.io/login?redirect=http://karas.daumkakao.io/" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Karas.png" class="link-icon" style="width:50px; height:50px;"> Karas
+                        </a>
+                        <a href="https://dkt.agit.in/g/300004802/wall/375105522#comment_panel_428427200" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Kage.png" class="link-icon" style="width:50px; height:50px;"> Kage
+                        </a>
+                        <a href="https://dkt.agit.in/g/300015037/wall/427347275#comment_panel_427373875" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Tset.png" class="link-icon" style="width:50px; height:50px;"> Tenth
+                        </a>
+                        <a href="https://dkt.agit.in/g/300002967/wall/320850203#comment_panel_403989670" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Krane.png" class="link-icon" style="width:50px; height:50px;"> Krane
+                        </a>
+                        <a href="https://imsv2.onkakao.net/system-asset/servers?pageSize=50&page=0&locB_in=HN1%2CHN3&parentSvcId=264946" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Krane.png" class="link-icon" style="width:50px; height:50px;"> Krane - Forfault
+                        </a>
+                        <a href="https://dkt.agit.in/g/300002967/wall/326758164#comment_panel_390768788" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Kafka.png" class="link-icon" style="width:50px; height:50px;"> Kfaka
+                        </a>
+                        <a href="https://imsv2.onkakao.net/system-asset/servers?pageSize=50&page=0&locB_in=HN1%2CHN3&parentSvcId=68527" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Kafka.png" class="link-icon" style="width:50px; height:50px;"> Kfaka - Forfault
+                        </a>
+                        <a href="https://dkt.agit.in/g/300004802/wall/429662243" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Elasticsearch.png" class="link-icon" style="width:50px; height:50px;"> ElasticSearch
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">ETC</div>
+                    <div class="link-list">
+                        <a href="http://kkoidc-web-v1.ay1.krane.9rum.cc:8262" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Quick.png" class="link-icon" style="width:50px; height:50px;"> 퀵 사용대장
+                        </a>
+                        <a href="http://10.202.27.232:8000/sub/" target="_blank" class="link-item">
+                            <img src="/static/favicon/favicon_sub.png" class="link-icon" style="width:50px; height:50px;"> 엑셀 변환기
+                        </a>
+                        <a href="http://10.203.8.166/" target="_blank" class="link-item">
+                            <img src="/static/img_v2/Network_Cable.png" class="link-icon" style="width:50px; height:50px;"> 케이블 길이 계산기
+                        </a>
+                        <a href="https://start.dktechin.io/?kw-auth-handover=21d562075813134b9c18d65b0a3fc5efd958035b6e667791b7e5c6babac80434" target="_blank" class="link-item">
+                            <img src="/static/img_v2/kakao.png" class="link-icon" style="width:50px; height:50px;"> 인트라넷
+                        </a>
+                        <a href="https://wlb.dktechin.io/login" target="_blank" class="link-item">
+                            <img src="/static/img_v2/kakao.png" class="link-icon" style="width:50px; height:50px;"> 휴가 시스템
+                        </a>
+                        <a href="https://eaccount.dktechin.io/" target="_blank" class="link-item">
+                            <img src="/static/img_v2/kakao.png" class="link-icon" style="width:50px; height:50px;"> 경비 지출 관리-회계마감
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="editor-container" id="editorWrapper">
+        <div class="date-title" id="dragHandle">
+            <span id="selectedDateText">날짜를 선택하세요</span>
+            <span style="font-size: 0.7rem; opacity: 0.7;">[MOVE & RESIZE]</span>
+        </div>
+        <form id="noteForm">
+            <textarea id="editor" name="content"></textarea>
+            <button type="submit" id="saveBtn">Save</button>
+        </form>
+    </div>
+
+    <script src="{% static 'flatpickr/flatpickr.min.js' %}"></script>
+    <script src="{% static 'flatpickr/ko.js' %}"></script>
+    <script src="{% static 'django_ckeditor_5/dist/bundle.js' %}"></script>
+
+    <script>
+        let selectedDate = null;
+        let editorInstance;
+        let calendar;
+
+        // 드래그 이동 기능 로직
+        function initDraggable(el) {
+            const handle = document.getElementById("dragHandle");
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+            handle.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                // 제목 표시줄 영역만 드래그 가능하게 설정
+                if (e.target !== handle && e.target.parentNode !== handle) return;
+                
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                el.style.top = (el.offsetTop - pos2) + "px";
+                el.style.left = (el.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        // 메모장 UI 토글 및 데이터 로드 (상속 로직)
+        function toggleEditorUI(show, dateStr = "") {
+            const wrapper = document.getElementById('editorWrapper');
+            const dateText = document.getElementById('selectedDateText');
+
+            if (show) {
+                dateText.innerText = `${dateStr} 운영 업무`;
+                wrapper.classList.add('show');
+            } else { wrapper.classList.remove('show'); }
+        }
+
+        // 메모 로드 함수 (상속 로직)
+        function loadNoteForDate(dateStr) {
+            if (!editorInstance) return;
+            editorInstance.setData(''); // 로딩 전 비우기 (잔상 방지)
+            fetch(`get_work/?date=${dateStr}`) // 기존 API 경로 유지
+                .then(res => res.json())
+                .then(data => { editorInstance.setData(data.content || ''); })
+                .catch(() => { editorInstance.setData(''); });
+        }
+
+        // CKEditor 초기화
+        function initEditor() {
+            const editorElement = document.querySelector('#editor');
+            
+            ClassicEditor.create(editorElement, {
+                licenseKey: 'GPL', 
+                toolbar: {
+                    items: [
+                        'heading', '|', 
+                        'bold', 'italic', 'underline', 'strikethrough', 'highlight', '|',
+                        'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                        'bulletedList', 'numberedList', 'todoList', '|',
+                        'code', 'codeBlock', 'blockQuote', 'insertTable', '|',
+                        'link', 'undo', 'redo'
+                    ],
+                    shouldNotGroupWhenFull: true
+                },
+                // ✅ 링크 기능이 확실히 동작하도록 설정 보강
+                link: {
+                    addTargetToExternalLinks: true, // 외부 링크는 새 탭으로
+                    defaultProtocol: 'https://'
+                },
+                // ✅ 벌룬 툴바: 텍스트 드래그 시 나타나는 퀵 툴바
+                balloonToolbar: ['bold', 'italic', 'link', 'highlight'],
+                highlight: {
+                    options: [
+                        { model: 'yellowMarker', class: 'pen-yellow', label: 'Yellow marker', type: 'marker' },
+                        { model: 'greenMarker', class: 'pen-green', label: 'Green marker', type: 'marker' },
+                        { model: 'pinkMarker', class: 'pen-pink', label: 'Pink marker', type: 'marker' },
+                        { model: 'blueMarker', class: 'pen-blue', label: 'Blue marker', type: 'marker' },
+                    ]
+                }
+            })
+            .then(editor => {
+                editorInstance = editor;
+                
+                // 초기 로드 시 마지막 날짜 복원
+                const lastDate = localStorage.getItem('last_selected_date');
+                if (lastDate) {
+                    selectedDate = lastDate;
+                    calendar.setDate(lastDate, true);
+                    toggleEditorUI(true, lastDate);
+                    loadNoteForDate(lastDate);
+                }
+            })
+            .catch(error => {
+                console.error('에디터 초기화 중 오류 발생:', error);
+            });
+        }
+        // 에디터 밖을 클릭했고, 달력 날짜 클릭이 아닐 경우 닫기
+        document.addEventListener('mousedown', function(e) {
+            const wrapper = document.getElementById('editorWrapper');
+            if (wrapper.classList.contains('show') && 
+                !wrapper.contains(e.target) && 
+                !e.target.closest('.flatpickr-day')) {
+                selectedDate = null;
+                toggleEditorUI(false);
+            }
+        });
+
+        // Flatpickr 초기화
+        calendar = flatpickr("#inlineCalendar", {
+            inline: true, locale: "ko", dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr) {
+                if (selectedDate === dateStr) {
+                    selectedDate = null; toggleEditorUI(false);
+                } else {
+                    selectedDate = dateStr;
+                    localStorage.setItem('last_selected_date', dateStr);
+                    toggleEditorUI(true, dateStr);
+                    loadNoteForDate(dateStr);
+                }
+            }
+        });
+
+        // 저장 로직 (빈 메모 방지)
+        document.getElementById("noteForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            if (!selectedDate) return alert("날짜를 선택하세요!");
+
+            const content = editorInstance.getData();
+            const plainText = content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim();
+
+            if (!plainText) {
+                alert("내용을 입력해주세요. 빈 메모는 저장 시 상속 로직이 끊길 수 있습니다.");
+                return;
+            }
+
+            fetch('save_work/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({
+                    date: selectedDate,
+                    content: content
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(selectedDate + " Save Complate");
+                }
+            });
+        });
+
+        // 다크모드 연동
+        document.getElementById("dm").addEventListener("change", () => {
+            document.body.classList.toggle("dark");
+        });
+
+        // 초기화 진행
+        initEditor();
+        // 드래그 기능 연결
+        initDraggable(document.getElementById('editorWrapper'));
+    </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+           ClassicEditor.create(editorElement, {
+                licenseKey: 'GPL', 
+                toolbar: [
+                    'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', 'highlight', '|',
+                    'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+                    'bulletedList', 'numberedList', 'todoList',  'insertTable', 'alignment', 'outdent', 'indent', '|',
+                    'code', 'codeBlock', 'blockQuote', 'insertTable', 'horizontalLine',  'specialCharacters', '|',
+                    'link', 'undo', 'redo'
+                ],
+                balloonToolbar: ['bold', 'italic', 'underline', 'highlight', 'link'],
+                highlight: {
+                    options: [
+                        { model: 'yellowMarker', class: 'pen-yellow', label: 'Yellow marker', type: 'marker' },
+                        { model: 'greenMarker', class: 'pen-green', label: 'Green marker', type: 'marker' },
+                        { model: 'pinkMarker', class: 'pen-pink', label: 'Pink marker', type: 'marker' },
+                        { model: 'blueMarker', class: 'pen-blue', label: 'Blue marker', type: 'marker' },
+                    ]
+                }
+            })
